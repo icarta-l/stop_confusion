@@ -14,3 +14,8 @@ function stop_confusion_custom_menu_page() {
     );
 }
 add_action('admin_menu', 'stop_confusion_custom_menu_page');
+
+function stop_confusion_enqueue_styles() {
+    wp_enqueue_style('stop_confusion-style', plugins_url( '/admin/style.css', __FILE__ ));
+}
+add_action('admin_enqueue_scripts', 'stop_confusion_enqueue_styles');
