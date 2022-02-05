@@ -3,6 +3,7 @@
  * Plugin Name: Stop Confusion
  * Author: Idan Carta
  * Text Domain: stop_confusion
+ * Update URI: false
  */
 
 function stop_confusion_custom_menu_page() {
