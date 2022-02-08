@@ -5,6 +5,8 @@
  * Text Domain: stop_confusion
  */
 
+require plugin_dir_path(__FILE__) . './admin/classes/DebugHelper.php';
+
 function stop_confusion_custom_menu_page() {
     add_menu_page(
         __('Stop Confusion', 'stop_confusion'),
@@ -15,7 +17,37 @@ function stop_confusion_custom_menu_page() {
 }
 add_action('admin_menu', 'stop_confusion_custom_menu_page');
 
-function stop_confusion_enqueue_styles() {
+function stop_confusion_enqueue_scripts_and_styles($hook) {
     wp_enqueue_style('stop_confusion-style', plugins_url( '/admin/style.css', __FILE__ ));
+    if ($hook === "themes.php") {
+        wp_enqueue_script('stop_confusion-theme', plugin_dir_url( __FILE__ ) . '/admin/js/theme.js', array('jquery'));   
+    }
 }
-add_action('admin_enqueue_scripts', 'stop_confusion_enqueue_styles');
+add_action('admin_enqueue_scripts', 'stop_confusion_enqueue_scripts_and_styles');
+
+function defer_js( $tag, $handle ) {
+    $defer = [
+        'stop_confusion-theme',
+    ];
+
+    if ( in_array( $handle, $defer ) ) {
+        $tag = str_replace( ' src', ' defer="defer" src', $tag );
+    }
+
+    return $tag;
+}
+add_filter( 'script_loader_tag', 'defer_js', 10, 2);
+
+function stop_confusion_admin_classes() {
+    $debugHelper = new DebugHelper("classes.log");
+    $debugHelper->delete();
+    $debugHelper->debug("Updates");
+    $array = get_site_transient( 'update_themes' );
+    $debugHelper->debug($array);
+}
+add_action("wp", "stop_confusion_admin_classes");
+
+// add_filter( 'site_transient_update_themes', 'remove_update_themes' );
+// function remove_update_themes( $value ) {
+//     return null;
+// }
