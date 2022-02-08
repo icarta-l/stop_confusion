@@ -3,6 +3,7 @@
  * Plugin Name: Stop Confusion
  * Author: Idan Carta
  * Text Domain: stop_confusion
+ * Update URI: false
  */
 
 require plugin_dir_path(__FILE__) . './admin/classes/DebugHelper.php';
@@ -51,3 +52,18 @@ add_action("wp", "stop_confusion_admin_classes");
 // function remove_update_themes( $value ) {
 //     return null;
 // }
+
+function stop_confusion_create_table() {
+    global $wpdb;
+    $query = 'CREATE TABLE IF NOT EXISTS ' . $wpdb->prefix . 'stop_confusion_theme_check(
+    id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    theme_slug VARCHAR(60) NOT NULL,
+    date_check DATETIME NOT NULL,
+    in_svn BOOLEAN NOT NULL,
+    PRIMARY KEY(id)
+    )
+    ENGINE=INNODB';
+    $create_table = $wpdb->query($query);
+    $wpdb->print_error();
+}
+register_activation_hook(__FILE__, 'stop_confusion_create_table');
