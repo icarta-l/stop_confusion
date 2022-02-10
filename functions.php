@@ -5,9 +5,6 @@ function handle_themes() : void {
 
 	$themes = wp_get_themes();
 
-	// [to delete] non-existant theme for test
-	$themes["kqdqszqdk"] = "value";
-
 	array_walk($themes, 'handle_theme');
 	print_stop_confusion_theme_check();
 }
