@@ -48,14 +48,14 @@ function defer_js( $tag, $handle ) {
 }
 add_filter( 'script_loader_tag', 'defer_js', 10, 2);
 
-function stop_confusion_admin_classes() {
-    $debugHelper = new DebugHelper("classes.log");
-    $debugHelper->delete();
-    $debugHelper->debug("Updates");
-    $array = get_site_transient( 'update_themes' );
-    $debugHelper->debug($array);
-}
-add_action("wp", "stop_confusion_admin_classes");
+// function stop_confusion_admin_classes() {
+//     $debugHelper = new DebugHelper("classes.log");
+//     $debugHelper->delete();
+//     $debugHelper->debug("Updates");
+//     $array = get_site_transient( 'update_themes' );
+//     $debugHelper->debug($array);
+// }
+// add_action("wp", "stop_confusion_admin_classes");
 
 // add_filter( 'site_transient_update_themes', 'remove_update_themes' );
 // function remove_update_themes( $value ) {
@@ -78,9 +78,6 @@ function stop_confusion_create_table() {
 register_activation_hook(__FILE__, 'stop_confusion_create_table');
 
 function stop_confusion_register_rest_route() {
-    $debugHelper = new DebugHelper("routes.log");
-    $debugHelper->delete();
-    $debugHelper->debug("Routes");
     $result = register_rest_route('stop_confusion/v1', '/themes', array(
         array(
             "methods" => WP_REST_Server::READABLE,
@@ -90,8 +87,6 @@ function stop_confusion_register_rest_route() {
             }
         ),
     ));
-    $debugHelper->debug($result);
-    $debugHelper->debug("Patates");
 }
 add_action('rest_api_init', 'stop_confusion_register_rest_route');
 
