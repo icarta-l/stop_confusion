@@ -6,7 +6,6 @@ function handle_themes() : void {
 	$themes = wp_get_themes();
 
 	array_walk($themes, 'handle_theme');
-	print_stop_confusion_theme_check();
 }
 
 function handle_theme($value, $key) : void {
@@ -36,8 +35,8 @@ function update_stop_confusion_theme_check($key, $found) : void {
 function create_stop_confusion_theme_check($key, $found) : void {
 	global $wpdb;
 	
-	$insert_query = "INSERT INTO " . $wpdb->prefix . "stop_confusion_theme_check (theme_slug, date_check, in_svn) VALUES(%s, NOW(), %d);";
-	$wpdb->query($wpdb->prepare($insert_query, $key, $found));
+	$insert_query = "INSERT INTO " . $wpdb->prefix . "stop_confusion_theme_check (theme_slug, date_check, in_svn, is_blocked) VALUES(%s, NOW(), %d, %d);";
+	$wpdb->query($wpdb->prepare($insert_query, $key, $found, $found));
 }
 
 function get_stop_confusion_theme_check() : array {
@@ -64,8 +63,6 @@ function check_wordpress_remote_repository($key) : int {
 
 	$response = wp_remote_get($url);
 	$code = wp_remote_retrieve_response_code( $response );
-
-	print_found_theme($key, $code);
 
 	return ($code === 200) ? 1 : 0;
 }

@@ -48,20 +48,6 @@ function defer_js( $tag, $handle ) {
 }
 add_filter( 'script_loader_tag', 'defer_js', 10, 2);
 
-// function stop_confusion_admin_classes() {
-//     $debugHelper = new DebugHelper("classes.log");
-//     $debugHelper->delete();
-//     $debugHelper->debug("Updates");
-//     $array = get_site_transient( 'update_themes' );
-//     $debugHelper->debug($array);
-// }
-// add_action("wp", "stop_confusion_admin_classes");
-
-// add_filter( 'site_transient_update_themes', 'remove_update_themes' );
-// function remove_update_themes( $value ) {
-//     return null;
-// }
-
 function stop_confusion_create_table() {
     global $wpdb;
     $query = 'CREATE TABLE IF NOT EXISTS ' . $wpdb->prefix . 'stop_confusion_theme_check(
@@ -69,6 +55,7 @@ function stop_confusion_create_table() {
     theme_slug VARCHAR(60) NOT NULL,
     date_check DATETIME NOT NULL,
     in_svn BOOLEAN NOT NULL,
+    is_blocked BOOLEAN NOT NULL,
     PRIMARY KEY(id)
     )
     ENGINE=INNODB';
@@ -86,6 +73,13 @@ function stop_confusion_register_rest_route() {
                 return current_user_can('administrator');
             }
         ),
+        array(
+            "methods" => WP_REST_Server::EDITABLE,
+            "callback" => 'stop_confusion_update_theme_scan',
+            "permission_callback" => function() {
+                return current_user_can('administrator');
+            }
+        )
     ));
 }
 add_action('rest_api_init', 'stop_confusion_register_rest_route');
@@ -93,4 +87,9 @@ add_action('rest_api_init', 'stop_confusion_register_rest_route');
 function stop_confusion_get_all_themes() {
     $data = get_stop_confusion_theme_check();
     return new WP_REST_Response($data, 200);
+}
+
+function stop_confusion_update_theme_scan() {
+    handle_themes();
+    return new WP_REST_Response(get_stop_confusion_theme_check(), 200);
 }
