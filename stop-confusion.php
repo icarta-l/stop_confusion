@@ -1,13 +1,14 @@
 <?php
 /**
  * Plugin Name: Stop Confusion
- * Author: Idan Carta
+ * Author: Idan Carta-Lag
  * Text Domain: stop_confusion
  * Update URI: false
  */
 
-require plugin_dir_path(__FILE__) . './admin/classes/DebugHelper.php';
-require plugin_dir_path(__FILE__) . './functions.php';
+require_once plugin_dir_path(__FILE__) . './admin/classes/DebugHelper.php';
+require_once plugin_dir_path(__FILE__) . './admin/classes/CheckThemeSecurity.php';
+require_once plugin_dir_path(__FILE__) . './admin/classes/Database.php';
 
 function stop_confusion_custom_menu_page() {
     add_menu_page(
@@ -22,6 +23,7 @@ add_action('admin_menu', 'stop_confusion_custom_menu_page');
 function stop_confusion_enqueue_scripts_and_styles($hook) {
     wp_enqueue_style('stop_confusion-style', plugins_url( '/admin/style.css', __FILE__ ));
     if ($hook === "stop-confusion/admin/view.php") {
+        wp_enqueue_style('stop_confusion-style', plugin_dir_url( __FILE__ ) . '/admin/style.css');
         wp_enqueue_script('stop_confusion-view', plugin_dir_url( __FILE__ ) . '/admin/js/view.js', array('wp-api'));
         wp_localize_script( 'wp-api', 'wpApiSettings', array(
             'root' => esc_url_raw( rest_url() ),
@@ -46,24 +48,26 @@ add_filter( 'script_loader_tag', 'defer_js', 10, 2);
 
 function stop_confusion_create_table() {
     global $wpdb;
+
+    $wpdb->show_errors();
     $create_main_table = 'CREATE TABLE IF NOT EXISTS ' . $wpdb->prefix . 'stop_confusion_theme_check(
     id INT UNSIGNED NOT NULL AUTO_INCREMENT,
     theme_slug VARCHAR(60) NOT NULL UNIQUE,
     date_check DATETIME NOT NULL,
     in_svn BOOLEAN NOT NULL,
     is_blocked BOOLEAN NOT NULL,
+    INDEX in_theme_slug (theme_slug),
+    INDEX in_date_check (date_check),
     PRIMARY KEY(id)
     )
     ENGINE=INNODB';
     $create_alert_table = 'CREATE TABLE IF NOT EXISTS ' . $wpdb->prefix . 'stop_confusion_security_alerts(
     id INT UNSIGNED NOT NULL AUTO_INCREMENT,
-    theme_slug VARCHAR(60) NOT NULL UNIQUE,
+    theme_slug VARCHAR(60) NOT NULL,
     date_check DATETIME NOT NULL,
     PRIMARY KEY(id),
     FOREIGN KEY (theme_slug)
-        REFERENCES ' . $wpdb->prefix . ' stop_confusion_theme_check(theme_slug),
-    FOREIGN KEY (date_check)
-        REFERENCES ' . $wpdb->prefix . ' stop_confusion_theme_check(date_check)
+        REFERENCES ' . $wpdb->prefix . 'stop_confusion_theme_check(theme_slug)
     )
     ENGINE=INNODB';
     $create_table = $wpdb->query($create_main_table);
@@ -98,28 +102,48 @@ function stop_confusion_register_rest_route() {
             }
         )
     ));
+    register_rest_route('stop_confusion/v1', '/themes/threat', array(
+        array(
+            "methods" => WP_REST_Server::READABLE,
+            "callback" => 'stop_confusion_print_security_alerts',
+            "permission_callback" => function() {
+                return current_user_can('administrator');
+            }
+        )
+    ));
 }
 add_action('rest_api_init', 'stop_confusion_register_rest_route');
 
 function stop_confusion_get_all_themes() {
-    $data = get_stop_confusion_theme_check();
+    $data = (new Database())->get_stop_confusion_theme_check();
     return new WP_REST_Response($data, 200);
 }
 
 function stop_confusion_update_theme_scan() {
-    handle_themes();
-    return new WP_REST_Response(get_stop_confusion_theme_check(), 200);
+    $result = (new CheckThemeSecurity())->handle_themes();
+    $rows = (new Database())->get_stop_confusion_theme_check();
+    $data = [
+        "security_threat" => $result,
+        "rows" => $rows
+    ];
+    return new WP_REST_Response($data, 200);
 }
 
 function stop_confusion_toggle_block_on_theme(WP_REST_Request $request) {
     $data = $request->get_params();
-    update_theme_blocked_status($data['blocked'], $data['theme_slug']);
-    $themes = get_stop_confusion_theme_check();
+    $database = new Database();
+    $database->update_theme_blocked_status($data['blocked'], $data['theme_slug']);
+    $themes = $database->get_stop_confusion_theme_check();
     return new WP_REST_Response($themes, 200);
 }
 
+function stop_confusion_print_security_alerts() {
+    $data = (new Database())->get_stop_confusion_security_alerts();
+    return new WP_REST_Response($data, 200);
+}
+
 function stop_confusion_filter_update_theme($value, $transient) {
-    $blocked_themes = get_blocked_themes();
+    $blocked_themes = (new Database())->get_blocked_themes();
     foreach ($blocked_themes as $blocked_theme) {
         if (isset($value) && is_object($value)) {
             unset($value->response[$blocked_theme['theme_slug']]);

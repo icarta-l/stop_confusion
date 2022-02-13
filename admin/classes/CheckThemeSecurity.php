@@ -1,0 +1,67 @@
+<?php
+
+require_once 'Database.php';
+
+/**
+ * Check for theme security
+ */
+class CheckThemeSecurity
+{
+	private bool $security_threat = false;
+
+	public function __construct()
+	{
+		$this->database = new Database();
+	}
+	
+	public function handle_themes() : bool 
+	{
+		global $wpdb;
+
+		$themes = wp_get_themes();
+
+		array_walk($themes, [$this, 'handle_theme']);
+
+		return $this->security_threat;
+	}
+
+	private function handle_theme(object $value, string $slug) : void 
+	{
+		global $wpdb;
+
+		$response = $this->check_wordpress_remote_repository($slug);
+
+		if ($this->database->is_in_database($slug) === 1) {
+			$threat = $this->check_for_security_threat($slug, $response);
+			$this->database->update_stop_confusion_theme_check($slug, $response);
+			if ($threat) {
+				$this->database->create_stop_confusion_security_alert($slug);
+				$this->security_threat = true;
+			}
+		} else {
+			$this->database->create_stop_confusion_theme_check($slug, $response);
+		}
+	}
+
+	private function check_for_security_threat(string $slug, int $response) : bool 
+	{
+		if ($response !== 1) {
+			return false;
+		}
+		if ($this->database->check_if_theme_had_svn($slug) === 0) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	private function check_wordpress_remote_repository(string $slug) : int 
+	{
+		$url = 'https://api.wordpress.org/themes/info/1.1/?action=theme_information&request[slug]="' . rawurlencode($slug) . '"';
+
+		$response = wp_remote_get($url);
+		$code = wp_remote_retrieve_response_code( $response );
+
+		return ($code === 200) ? 1 : 0;
+	}
+}

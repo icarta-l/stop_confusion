@@ -20,4 +20,5 @@ require_once str_replace("admin", "functions.php", __DIR__);
 	<div class="update-wrapper">
 		<a href="#" class="update-action">Update</a>
 	</div>
+	<div class="security-alerts"></div>
 </div>

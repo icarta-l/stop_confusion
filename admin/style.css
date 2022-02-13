@@ -1,24 +1,11 @@
-.theme-found {
-	display: block;
-}
-
-div.stop_confusion-pop-up {
-	position: fixed;
-	top: 50%;
-	left: 50%;
-	transform: translateX(-50%) translateY(-50%);
+.security-alerts > p {
 	background: white;
-	padding: 16px;
-	border-radius: 4px;
-	color: black;
-	text-align: center;
-    border: 1px solid grey;
-    font-size: 1.5em;
+    padding: 16px;
+    border-radius: 4px;
+    border: 1px solid rgba(0,0,0,0.1);
+    font-size: 2em;
 }
 
-.stop_confusion-exit-cross {
-	position: absolute;
-	top: 5px;
-    right: 5px;
-    cursor: pointer;
+.security-alerts > p > strong {
+	color: red;
 }
