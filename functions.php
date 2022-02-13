@@ -20,23 +20,27 @@ function handle_theme($value, $key) : void {
 	}
 }
 
+function get_blocked_value(int $found) : int {
+	return ($found === 1) ? 0 : 1;
+}
+
 /**
  * Database functions
  * 
  */
 
-function update_stop_confusion_theme_check($key, $found) : void {
+function update_stop_confusion_theme_check($slug, $found) : void {
 	global $wpdb;
 	
 	$update_query = "UPDATE " . $wpdb->prefix . "stop_confusion_theme_check SET date_check = NOW(), in_svn = %d WHERE theme_slug = %s";
-	$wpdb->query($wpdb->prepare($update_query, $found, $key));
+	$wpdb->query($wpdb->prepare($update_query, $found, $slug));
 }
 
-function create_stop_confusion_theme_check($key, $found) : void {
+function create_stop_confusion_theme_check($slug, $found) : void {
 	global $wpdb;
 	
 	$insert_query = "INSERT INTO " . $wpdb->prefix . "stop_confusion_theme_check (theme_slug, date_check, in_svn, is_blocked) VALUES(%s, NOW(), %d, %d);";
-	$wpdb->query($wpdb->prepare($insert_query, $key, $found, $found));
+	$wpdb->query($wpdb->prepare($insert_query, $slug, $found, get_blocked_value($found)));
 }
 
 function get_stop_confusion_theme_check() : array {
@@ -46,11 +50,26 @@ function get_stop_confusion_theme_check() : array {
 	return $wpdb->get_results($retrieve_rows, ARRAY_A);
 }
 
-function is_in_database($key) : int {
+function is_in_database($slug) : int {
 	global $wpdb;
 
 	$search_query = "SELECT * FROM " . $wpdb->prefix . "stop_confusion_theme_check WHERE theme_slug = %s";
-	return $wpdb->query($wpdb->prepare($search_query, $key));
+	return $wpdb->query($wpdb->prepare($search_query, $slug));
+}
+
+function update_theme_blocked_status(int $blocked, string $slug) : void {
+	global $wpdb;
+
+	$update_query = "UPDATE " . $wpdb->prefix . "stop_confusion_theme_check SET is_blocked = %d WHERE theme_slug = %s";
+	$blocked = ($blocked === 0) ? 1 : 0;
+	$wpdb->query($wpdb->prepare($update_query, $blocked, $slug));
+}
+
+function get_blocked_themes() : array {
+	global $wpdb;
+
+	$retrieve_rows = "SELECT * FROM " . $wpdb->prefix . "stop_confusion_theme_check WHERE is_blocked = 1";
+	return $wpdb->get_results($retrieve_rows, ARRAY_A);
 }
 
 /**

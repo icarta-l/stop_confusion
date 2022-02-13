@@ -65,7 +65,7 @@ function stop_confusion_create_table() {
 register_activation_hook(__FILE__, 'stop_confusion_create_table');
 
 function stop_confusion_register_rest_route() {
-    $result = register_rest_route('stop_confusion/v1', '/themes', array(
+    register_rest_route('stop_confusion/v1', '/themes', array(
         array(
             "methods" => WP_REST_Server::READABLE,
             "callback" => 'stop_confusion_get_all_themes',
@@ -76,6 +76,15 @@ function stop_confusion_register_rest_route() {
         array(
             "methods" => WP_REST_Server::EDITABLE,
             "callback" => 'stop_confusion_update_theme_scan',
+            "permission_callback" => function() {
+                return current_user_can('administrator');
+            }
+        )
+    ));
+    register_rest_route('stop_confusion/v1', '/theme/block', array(
+        array(
+            "methods" => WP_REST_Server::EDITABLE,
+            "callback" => 'stop_confusion_toggle_block_on_theme',
             "permission_callback" => function() {
                 return current_user_can('administrator');
             }
@@ -93,3 +102,29 @@ function stop_confusion_update_theme_scan() {
     handle_themes();
     return new WP_REST_Response(get_stop_confusion_theme_check(), 200);
 }
+
+function stop_confusion_toggle_block_on_theme(WP_REST_Request $request) {
+    $data = $request->get_params();
+    update_theme_blocked_status($data['blocked'], $data['theme_slug']);
+    $themes = get_stop_confusion_theme_check();
+    return new WP_REST_Response($themes, 200);
+}
+
+function stop_confusion_filter_update_theme($value, $transient) {
+    $debugHelper = new DebugHelper("transient.log");
+    $debugHelper->delete();
+    $debugHelper->debug('Value:');
+    $debugHelper->debug($value);
+    $debugHelper->debug('Transient:');
+    $debugHelper->debug($transient);
+    $blocked_themes = get_blocked_themes();
+    $debugHelper->debug('Themes:');
+    $debugHelper->debug($blocked_themes);
+    foreach ($blocked_themes as $blocked_theme) {
+        if (isset($value) && is_object($value)) {
+            unset($value->response[$blocked_theme['theme_slug']]);
+        }
+    }
+    return $value;
+}
+add_filter('site_transient_update_themes','stop_confusion_filter_update_theme', 10, 2);

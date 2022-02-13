@@ -3,17 +3,63 @@ const emptyDiv = document.createElement('div');
 const databaseColumns = ["id", "theme_slug", "date_check", "in_svn", "is_blocked"];
 const updateAction = document.getElementsByClassName("update-action")[0];
 
+const toggleBlockOnTheme = (event) => {
+	event.preventDefault();
+	const index = event.currentTarget.parentNode.classList[0];
+	const themeSlug = document.getElementsByClassName(index + " theme_slug")[0].innerHTML;
+	const blocked = (event.currentTarget.innerHTML === "No") ? 0 : 1;
+	const body = {
+		theme_slug: themeSlug,
+		blocked: blocked
+	};
+	const headers = new Headers({
+		'X-WP-Nonce': wpApiSettings.nonce,
+		'Content-Type': "application/json"
+	});
+
+	const options = {
+		method: 'PUT',
+		headers: headers,
+		body: JSON.stringify(body)
+	};
+	fetch("http://localhost:8000/wp-json/stop_confusion/v1/theme/block", options)
+	.then((response) => {
+		return response.json();
+	})
+	.then((response) => {
+		removeAllRowsFromTable(myView);
+		printDataToFront(response);
+	});
+}
+
+const addEventListenerToBlocked = () => {
+	const blocked = document.getElementsByClassName("update-blocked");
+	for (let i = 0; i < blocked.length; i++) {
+		blocked[i].addEventListener("click", toggleBlockOnTheme);
+	}
+}
+
+const handleData = (column, row) => {
+	let data = row[column];
+	if (column === "in_svn"  || column === "is_blocked") {
+		data = (Number(row[column]) === 1) ? "Yes" : "No";
+	}
+	if (column === "is_blocked") {
+		data = '<a href="#" class="update-blocked">' + data + '</a>'
+	}
+	return data;
+}
+
 const printDataToFront = (data) => {
-	data.forEach((row, index) => {
-		const newRow = myView.insertRow(index + 1);
+	data.forEach((row, rowIndex) => {
+		const newRow = myView.insertRow(rowIndex + 1);
 		databaseColumns.forEach((column, index) => {
-			let data = row[column];
-			if (column === "in_svn"  || column === "is_blocked") {
-				data = (Number(row[column]) === 1) ? "Yes" : "No";
-			}
-			newRow.insertCell(index).appendChild(document.createTextNode(data));
+			const cell = newRow.insertCell(index);
+			cell.innerHTML = handleData(column, row);
+			cell.classList.add(rowIndex, column);
 		});
 	});
+	addEventListenerToBlocked();
 }
 
 const removeAllRowsFromTable = (table) => {
@@ -27,6 +73,7 @@ const removeAllRowsFromTable = (table) => {
 }
 
 const updateThemeScan = (event) => {
+	event.preventDefault();
 	const headers = new Headers({
 		'X-WP-Nonce': wpApiSettings.nonce
 	});
