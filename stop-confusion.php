@@ -111,15 +111,7 @@ function stop_confusion_toggle_block_on_theme(WP_REST_Request $request) {
 }
 
 function stop_confusion_filter_update_theme($value, $transient) {
-    $debugHelper = new DebugHelper("transient.log");
-    $debugHelper->delete();
-    $debugHelper->debug('Value:');
-    $debugHelper->debug($value);
-    $debugHelper->debug('Transient:');
-    $debugHelper->debug($transient);
     $blocked_themes = get_blocked_themes();
-    $debugHelper->debug('Themes:');
-    $debugHelper->debug($blocked_themes);
     foreach ($blocked_themes as $blocked_theme) {
         if (isset($value) && is_object($value)) {
             unset($value->response[$blocked_theme['theme_slug']]);
