@@ -21,9 +21,6 @@ add_action('admin_menu', 'stop_confusion_custom_menu_page');
 
 function stop_confusion_enqueue_scripts_and_styles($hook) {
     wp_enqueue_style('stop_confusion-style', plugins_url( '/admin/style.css', __FILE__ ));
-    if ($hook === "themes.php") {
-        wp_enqueue_script('stop_confusion-theme', plugin_dir_url( __FILE__ ) . '/admin/js/theme.js', array());   
-    }
     if ($hook === "stop-confusion/admin/view.php") {
         wp_enqueue_script('stop_confusion-view', plugin_dir_url( __FILE__ ) . '/admin/js/view.js', array('wp-api'));
         wp_localize_script( 'wp-api', 'wpApiSettings', array(
@@ -36,7 +33,6 @@ add_action('admin_enqueue_scripts', 'stop_confusion_enqueue_scripts_and_styles')
 
 function defer_js( $tag, $handle ) {
     $defer = [
-        'stop_confusion-theme',
         'stop_confusion-view'
     ];
 
@@ -50,16 +46,28 @@ add_filter( 'script_loader_tag', 'defer_js', 10, 2);
 
 function stop_confusion_create_table() {
     global $wpdb;
-    $query = 'CREATE TABLE IF NOT EXISTS ' . $wpdb->prefix . 'stop_confusion_theme_check(
+    $create_main_table = 'CREATE TABLE IF NOT EXISTS ' . $wpdb->prefix . 'stop_confusion_theme_check(
     id INT UNSIGNED NOT NULL AUTO_INCREMENT,
-    theme_slug VARCHAR(60) NOT NULL,
+    theme_slug VARCHAR(60) NOT NULL UNIQUE,
     date_check DATETIME NOT NULL,
     in_svn BOOLEAN NOT NULL,
     is_blocked BOOLEAN NOT NULL,
     PRIMARY KEY(id)
     )
     ENGINE=INNODB';
-    $create_table = $wpdb->query($query);
+    $create_alert_table = 'CREATE TABLE IF NOT EXISTS ' . $wpdb->prefix . 'stop_confusion_security_alerts(
+    id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    theme_slug VARCHAR(60) NOT NULL UNIQUE,
+    date_check DATETIME NOT NULL,
+    PRIMARY KEY(id),
+    FOREIGN KEY (theme_slug)
+        REFERENCES ' . $wpdb->prefix . ' stop_confusion_theme_check(theme_slug),
+    FOREIGN KEY (date_check)
+        REFERENCES ' . $wpdb->prefix . ' stop_confusion_theme_check(date_check)
+    )
+    ENGINE=INNODB';
+    $create_table = $wpdb->query($create_main_table);
+    $create_secondary_table = $wpdb->query($create_alert_table);
     $wpdb->print_error();
 }
 register_activation_hook(__FILE__, 'stop_confusion_create_table');
