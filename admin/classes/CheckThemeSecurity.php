@@ -34,10 +34,7 @@ class CheckThemeSecurity
 		if ($this->database->is_in_database($slug) === 1) {
 			$threat = $this->check_for_security_threat($slug, $response);
 			$this->database->update_stop_confusion_theme_check($slug, $response);
-			if ($threat) {
-				$this->database->create_stop_confusion_security_alert($slug);
-				$this->security_threat = true;
-			}
+			$this->handle_security_threats($threat, $slug);
 		} else {
 			$this->database->create_stop_confusion_theme_check($slug, $response);
 		}
@@ -63,5 +60,18 @@ class CheckThemeSecurity
 		$code = wp_remote_retrieve_response_code( $response );
 
 		return ($code === 200) ? 1 : 0;
+	}
+
+	private function handle_security_threats(bool $threat, string $slug)
+	{
+		if (!$threat) {
+			return;
+		}
+		if ($this->database->security_alert_in_database($slug) === 1) {
+			$this->database->update_stop_confusion_security_alert($slug);
+		} else {
+			$this->database->create_stop_confusion_security_alert($slug);
+		}
+		$this->security_threat = true;
 	}
 }

@@ -63,7 +63,7 @@ function stop_confusion_create_table() {
     ENGINE=INNODB';
     $create_alert_table = 'CREATE TABLE IF NOT EXISTS ' . $wpdb->prefix . 'stop_confusion_security_alerts(
     id INT UNSIGNED NOT NULL AUTO_INCREMENT,
-    theme_slug VARCHAR(60) NOT NULL,
+    theme_slug VARCHAR(60) NOT NULL UNIQUE,
     date_check DATETIME NOT NULL,
     PRIMARY KEY(id),
     FOREIGN KEY (theme_slug)

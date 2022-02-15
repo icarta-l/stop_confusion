@@ -49,7 +49,7 @@ const handleData = (column, row) => {
 		data = (Number(row[column]) === 1) ? "Yes" : "No";
 	}
 	if (column === "is_blocked") {
-		data = '<a href="#" class="update-blocked">' + data + '</a>'
+		data = '<a href="#" class="update-blocked">' + data + '</a>';
 	}
 	return data;
 }
@@ -70,9 +70,9 @@ const getSecurityAlerts = () => {
 	})
 	.then((response) => {
 		console.log(response);
-		response.forEach((theme) => {
-			const message = securityMessage.replace("**THEME**", theme.theme_slug).replace("**DATE**", theme.date_check);
-			securityAlerts.innerHTML += message;
+		response.forEach((row) => {
+			const alertRow = myView.getElementsByClassName('id-' + row.id)[0].parentNode;
+			alertRow.classList.add('alert');
 		});
 	});
 }
@@ -88,6 +88,9 @@ const printDataToFront = (data) => {
 			const cell = newRow.insertCell(index);
 			cell.innerHTML = handleData(column, row);
 			cell.classList.add(rowIndex, column);
+			if (column === "id") {
+				cell.classList.add(column + '-' + row[column]);
+			}
 		});
 	});
 	addEventListenerToBlocked();
