@@ -32,20 +32,20 @@ class CheckThemeSecurity
 		$response = $this->check_wordpress_remote_repository($slug);
 
 		if ($this->database->is_in_database($slug) === 1) {
-			$threat = $this->check_for_security_threat($slug, $response);
+			$had_svn = $this->database->check_if_theme_had_svn($slug);
 			$this->database->update_stop_confusion_theme_check($slug, $response);
-			$this->handle_security_threats($threat, $slug);
+			$this->handle_security_threats($response, $slug, $had_svn);
 		} else {
 			$this->database->create_stop_confusion_theme_check($slug, $response);
 		}
 	}
 
-	private function check_for_security_threat(string $slug, int $response) : bool 
+	private function check_for_security_threat(string $slug, int $response, int $had_svn) : bool 
 	{
 		if ($response !== 1) {
 			return false;
 		}
-		if ($this->database->check_if_theme_had_svn($slug) === 0) {
+		if ($had_svn === 0) {
 			return true;
 		} else {
 			return false;
@@ -62,9 +62,9 @@ class CheckThemeSecurity
 		return ($code === 200) ? 1 : 0;
 	}
 
-	private function handle_security_threats(bool $threat, string $slug)
+	private function handle_security_threats(int $response, string $slug, int $had_svn)
 	{
-		if (!$threat) {
+		if ($this->check_for_security_threat($slug, $response, $had_svn) === false) {
 			return;
 		}
 		if ($this->database->security_alert_in_database($slug) === 1) {

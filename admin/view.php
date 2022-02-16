@@ -13,7 +13,7 @@ require_once str_replace("admin", "functions.php", __DIR__);
 				<th>Theme Slug</th>
 				<th>Last Check</th>
 				<th>In SVN</th>
-				<th>Blocked</th>
+				<th>Authorized</th>
 			</tr>
 		</table>
 	</div>

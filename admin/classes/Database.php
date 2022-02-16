@@ -19,8 +19,8 @@ class Database
 	public function create_stop_confusion_theme_check(string $slug, int $found) : void {
 		global $wpdb;
 
-		$insert_query = "INSERT INTO " . $wpdb->prefix . "stop_confusion_theme_check (theme_slug, date_check, in_svn, is_blocked) VALUES(%s, NOW(), %d, %d);";
-		$wpdb->query($wpdb->prepare($insert_query, $slug, $found, $this->get_blocked_value($found)));
+		$insert_query = "INSERT INTO " . $wpdb->prefix . "stop_confusion_theme_check (theme_slug, date_check, in_svn, is_authorized) VALUES(%s, NOW(), %d, %d);";
+		$wpdb->query($wpdb->prepare($insert_query, $slug, $found, 0));
 	}
 
 	public function get_stop_confusion_theme_check() : array {
@@ -51,23 +51,19 @@ class Database
 		return $wpdb->query($wpdb->prepare($search_query, $slug));
 	}
 
-	public function update_theme_blocked_status(int $blocked, string $slug) : void {
+	public function update_theme_authorization_status(int $authorized, string $slug) : void {
 		global $wpdb;
 
-		$update_query = "UPDATE " . $wpdb->prefix . "stop_confusion_theme_check SET is_blocked = %d WHERE theme_slug = %s";
-		$blocked = ($blocked === 0) ? 1 : 0;
-		$wpdb->query($wpdb->prepare($update_query, $blocked, $slug));
+		$update_query = "UPDATE " . $wpdb->prefix . "stop_confusion_theme_check SET is_authorized = %d WHERE theme_slug = %s";
+		$authorized = ($authorized === 0) ? 1 : 0;
+		$wpdb->query($wpdb->prepare($update_query, $authorized, $slug));
 	}
 
-	public function get_blocked_themes() : array {
+	public function get_authorized_themes() : array {
 		global $wpdb;
 
-		$retrieve_rows = "SELECT * FROM " . $wpdb->prefix . "stop_confusion_theme_check WHERE is_blocked = 1";
+		$retrieve_rows = "SELECT * FROM " . $wpdb->prefix . "stop_confusion_theme_check WHERE is_authorized = 1";
 		return $wpdb->get_results($retrieve_rows, ARRAY_A);
-	}
-
-	private function get_blocked_value(int $found) : int {
-		return ($found === 1) ? 0 : 1;
 	}
 
 	/**

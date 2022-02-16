@@ -22,7 +22,7 @@ add_action('admin_menu', 'stop_confusion_custom_menu_page');
 
 function stop_confusion_enqueue_scripts_and_styles($hook) {
     wp_enqueue_style('stop_confusion-style', plugins_url( '/admin/style.css', __FILE__ ));
-    if ($hook === "stop-confusion/admin/view.php") {
+    if ($hook === "stop_confusion/admin/view.php") {
         wp_enqueue_style('stop_confusion-style', plugin_dir_url( __FILE__ ) . '/admin/style.css');
         wp_enqueue_script('stop_confusion-view', plugin_dir_url( __FILE__ ) . '/admin/js/view.js', array('wp-api'));
         wp_localize_script( 'wp-api', 'wpApiSettings', array(
@@ -55,7 +55,7 @@ function stop_confusion_create_table() {
     theme_slug VARCHAR(60) NOT NULL UNIQUE,
     date_check DATETIME NOT NULL,
     in_svn BOOLEAN NOT NULL,
-    is_blocked BOOLEAN NOT NULL,
+    is_authorized BOOLEAN NOT NULL,
     INDEX in_theme_slug (theme_slug),
     INDEX in_date_check (date_check),
     PRIMARY KEY(id)
@@ -93,10 +93,10 @@ function stop_confusion_register_rest_route() {
             }
         )
     ));
-    register_rest_route('stop_confusion/v1', '/theme/block', array(
+    register_rest_route('stop_confusion/v1', '/theme/authorization', array(
         array(
             "methods" => WP_REST_Server::EDITABLE,
-            "callback" => 'stop_confusion_toggle_block_on_theme',
+            "callback" => 'stop_confusion_toggle_authorization_on_theme',
             "permission_callback" => function() {
                 return current_user_can('administrator');
             }
@@ -129,10 +129,10 @@ function stop_confusion_update_theme_scan() {
     return new WP_REST_Response($data, 200);
 }
 
-function stop_confusion_toggle_block_on_theme(WP_REST_Request $request) {
+function stop_confusion_toggle_authorization_on_theme(WP_REST_Request $request) {
     $data = $request->get_params();
     $database = new Database();
-    $database->update_theme_blocked_status($data['blocked'], $data['theme_slug']);
+    $database->update_theme_authorization_status($data['authorized'], $data['theme_slug']);
     $themes = $database->get_stop_confusion_theme_check();
     return new WP_REST_Response($themes, 200);
 }
@@ -143,11 +143,19 @@ function stop_confusion_print_security_alerts() {
 }
 
 function stop_confusion_filter_update_theme($value, $transient) {
-    $blocked_themes = (new Database())->get_blocked_themes();
-    foreach ($blocked_themes as $blocked_theme) {
-        if (isset($value) && is_object($value)) {
-            unset($value->response[$blocked_theme['theme_slug']]);
+    $authorized_themes = (new Database())->get_authorized_themes();
+    $theme_slugs = [];
+    foreach ($authorized_themes as $authorized_theme) {
+        $theme_slugs[] = $authorized_theme['theme_slug'];
+    }
+    if (isset($value) && is_object($value)) {
+        $slugs_with_updates = array_keys($value->response);
+    }
+    foreach ($slugs_with_updates as $slug) {
+        if (in_array($slug, $theme_slugs)) {
+            continue;
         }
+        unset($value->response[$slug]);
     }
     return $value;
 }
