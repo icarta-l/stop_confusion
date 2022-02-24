@@ -19,6 +19,7 @@ class CheckThemeSecurity
 		global $wpdb;
 
 		$themes = wp_get_themes();
+		$this->checkForDeletedThemes($themes);
 
 		array_walk($themes, [$this, 'handleTheme']);
 
@@ -62,7 +63,7 @@ class CheckThemeSecurity
 		return ($code === 200) ? 1 : 0;
 	}
 
-	private function handleSecurityThreats(int $response, string $slug, int $had_svn)
+	private function handleSecurityThreats(int $response, string $slug, int $had_svn) : void
 	{
 		if ($this->checkForSecurityThreat($slug, $response, $had_svn) === false) {
 			return;
@@ -72,6 +73,19 @@ class CheckThemeSecurity
 		} else {
 			$this->database->createStopConfusionSecurityAlert($slug);
 		}
+		$this->database->updateThemeAuthorizationStatus(1, $slug);
 		$this->security_threat = true;
+	}
+
+	private function checkForDeletedThemes(array $themes) : void
+	{
+		$themes_in_database = $this->database->getStopConfusionThemeCheck();
+		$slugs = array_keys($themes);
+		foreach ($themes_in_database as $theme) {
+			if (in_array($theme['theme_slug'], $slugs)) {
+				continue;
+			}
+			$this->database->deleteThemeFromDatabase($theme['theme_slug']);
+		}
 	}
 }

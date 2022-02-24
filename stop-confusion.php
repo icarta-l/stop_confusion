@@ -67,6 +67,7 @@ function stop_confusion_create_table() {
     PRIMARY KEY(id),
     FOREIGN KEY (theme_slug)
         REFERENCES ' . $wpdb->prefix . 'stop_confusion_theme_check(theme_slug)
+        ON DELETE CASCADE
     )
     ENGINE=INNODB';
     $create_table = $wpdb->query($create_main_table);
@@ -130,7 +131,7 @@ function stop_confusion_update_theme_scan() {
 
 function stop_confusion_toggle_authorization_on_theme(WP_REST_Request $request) {
     $data = json_decode($request->get_body());
-    
+
     $database = new Database();
     $database->updateThemeAuthorizationStatus($data->authorized, $data->theme_slug);
     $themes = $database->getStopConfusionThemeCheck();

@@ -20,7 +20,11 @@ class Database
 		global $wpdb;
 
 		$insert_query = "INSERT INTO " . $wpdb->prefix . "stop_confusion_theme_check (theme_slug, date_check, in_svn, is_authorized) VALUES(%s, NOW(), %d, %d);";
-		$wpdb->query($wpdb->prepare($insert_query, $slug, $found, 0));
+		$authorized = 0;
+		if ($found === 1) {
+			$authorized = 1;
+		}
+		$wpdb->query($wpdb->prepare($insert_query, $slug, $found, $authorized));
 	}
 
 	public function getStopConfusionThemeCheck() : array {
@@ -64,6 +68,14 @@ class Database
 
 		$retrieve_rows = "SELECT * FROM " . $wpdb->prefix . "stop_confusion_theme_check WHERE is_authorized = 1";
 		return $wpdb->get_results($retrieve_rows, ARRAY_A);
+	}
+
+	public function deleteThemeFromDatabase(string $slug) : void
+	{
+		global $wpdb;
+
+		$delete_query = "DELETE FROM " . $wpdb->prefix . "stop_confusion_theme_check WHERE theme_slug = %s";
+		$wpdb->query($wpdb->prepare($delete_query, $slug));
 	}
 
 	/**

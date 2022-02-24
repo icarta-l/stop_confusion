@@ -90,6 +90,10 @@ const addEventListenerToAuthorized = () => {
  	if (column === "theme_slug") {
  		cell.classList.add(column + '-' + row[column]);
  	}
+ 	if (column === "in_svn" && Number(row[column]) === 0) {
+ 		const lowAlertRow = myView.getElementsByClassName('theme_slug-' + row.theme_slug)[0].parentNode;
+ 		lowAlertRow.classList.add('low-alert');
+ 	}
  }
 
  const removeAllRowsFromTable = (table) => {
@@ -142,7 +146,6 @@ const addEventListenerToAuthorized = () => {
  	const body = getTargetizedScannedThemeInfo(event);
  	const options = getFetchOptions("PUT", true);
  	options.body = JSON.stringify(body);
- 	console.log(options);
 
  	fetch(wpApiSettings.root + "stop_confusion/v1/theme/authorization", options)
  	.then((response) => {
