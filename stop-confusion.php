@@ -129,9 +129,10 @@ function stop_confusion_update_theme_scan() {
 }
 
 function stop_confusion_toggle_authorization_on_theme(WP_REST_Request $request) {
-    $data = $request->get_params();
+    $data = json_decode($request->get_body());
+    
     $database = new Database();
-    $database->updateThemeAuthorizationStatus($data['authorized'], $data['theme_slug']);
+    $database->updateThemeAuthorizationStatus($data->authorized, $data->theme_slug);
     $themes = $database->getStopConfusionThemeCheck();
     return new WP_REST_Response($themes, 200);
 }

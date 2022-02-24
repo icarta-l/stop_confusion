@@ -64,7 +64,7 @@ const addEventListenerToAuthorized = () => {
  const parseThemeData = (row, rowIndex) => {
  	const newRow = myView.insertRow(rowIndex + 1);
  	databaseColumns.forEach((column, index) => {
- 		assignDataToHTMLTable(column, index, newRow, row);
+ 		assignDataToHTMLTable(column, index, newRow, row, rowIndex);
  	});
  }
 
@@ -83,7 +83,7 @@ const addEventListenerToAuthorized = () => {
  	addEventListenerToAuthorized();
  }
 
- const assignDataToHTMLTable = (column, index, newRow, row) => {
+ const assignDataToHTMLTable = (column, index, newRow, row, rowIndex) => {
  	const cell = newRow.insertCell(index);
  	cell.innerHTML = handleData(column, row);
  	cell.classList.add(rowIndex, column);
@@ -142,6 +142,7 @@ const addEventListenerToAuthorized = () => {
  	const body = getTargetizedScannedThemeInfo(event);
  	const options = getFetchOptions("PUT", true);
  	options.body = JSON.stringify(body);
+ 	console.log(options);
 
  	fetch(wpApiSettings.root + "stop_confusion/v1/theme/authorization", options)
  	.then((response) => {
