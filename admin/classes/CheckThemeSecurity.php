@@ -14,33 +14,33 @@ class CheckThemeSecurity
 		$this->database = new Database();
 	}
 	
-	public function handle_themes() : bool 
+	public function handleThemes() : bool 
 	{
 		global $wpdb;
 
 		$themes = wp_get_themes();
 
-		array_walk($themes, [$this, 'handle_theme']);
+		array_walk($themes, [$this, 'handleTheme']);
 
 		return $this->security_threat;
 	}
 
-	private function handle_theme(object $value, string $slug) : void 
+	private function handleTheme(object $value, string $slug) : void 
 	{
 		global $wpdb;
 
-		$response = $this->check_wordpress_remote_repository($slug);
+		$response = $this->checkWordpressRemoteRepository($slug);
 
-		if ($this->database->is_in_database($slug) === 1) {
-			$had_svn = $this->database->check_if_theme_had_svn($slug);
-			$this->database->update_stop_confusion_theme_check($slug, $response);
-			$this->handle_security_threats($response, $slug, $had_svn);
+		if ($this->database->isInDatabase($slug) === 1) {
+			$had_svn = $this->database->checkIfThemeHadSvn($slug);
+			$this->database->updateStopConfusionThemeCheck($slug, $response);
+			$this->handleSecurityThreats($response, $slug, $had_svn);
 		} else {
-			$this->database->create_stop_confusion_theme_check($slug, $response);
+			$this->database->createStopConfusionThemeCheck($slug, $response);
 		}
 	}
 
-	private function check_for_security_threat(string $slug, int $response, int $had_svn) : bool 
+	private function checkForSecurityThreat(string $slug, int $response, int $had_svn) : bool 
 	{
 		if ($response !== 1) {
 			return false;
@@ -52,7 +52,7 @@ class CheckThemeSecurity
 		}
 	}
 
-	private function check_wordpress_remote_repository(string $slug) : int 
+	private function checkWordpressRemoteRepository(string $slug) : int 
 	{
 		$url = 'https://api.wordpress.org/themes/info/1.1/?action=theme_information&request[slug]="' . rawurlencode($slug) . '"';
 
@@ -62,15 +62,15 @@ class CheckThemeSecurity
 		return ($code === 200) ? 1 : 0;
 	}
 
-	private function handle_security_threats(int $response, string $slug, int $had_svn)
+	private function handleSecurityThreats(int $response, string $slug, int $had_svn)
 	{
-		if ($this->check_for_security_threat($slug, $response, $had_svn) === false) {
+		if ($this->checkForSecurityThreat($slug, $response, $had_svn) === false) {
 			return;
 		}
-		if ($this->database->security_alert_in_database($slug) === 1) {
-			$this->database->update_stop_confusion_security_alert($slug);
+		if ($this->database->securityAlertInDatabase($slug) === 1) {
+			$this->database->updateStopConfusionSecurityAlert($slug);
 		} else {
-			$this->database->create_stop_confusion_security_alert($slug);
+			$this->database->createStopConfusionSecurityAlert($slug);
 		}
 		$this->security_threat = true;
 	}

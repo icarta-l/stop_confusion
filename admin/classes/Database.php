@@ -8,7 +8,7 @@ class Database
 	/**
 	 * Theme check functions
 	 */
-	public function update_stop_confusion_theme_check(string $slug, int $found) : void 
+	public function updateStopConfusionThemeCheck(string $slug, int $found) : void 
 	{
 		global $wpdb;
 
@@ -16,42 +16,42 @@ class Database
 		$wpdb->query($wpdb->prepare($update_query, $found, $slug));
 	}
 
-	public function create_stop_confusion_theme_check(string $slug, int $found) : void {
+	public function createStopConfusionThemeCheck(string $slug, int $found) : void {
 		global $wpdb;
 
 		$insert_query = "INSERT INTO " . $wpdb->prefix . "stop_confusion_theme_check (theme_slug, date_check, in_svn, is_authorized) VALUES(%s, NOW(), %d, %d);";
 		$wpdb->query($wpdb->prepare($insert_query, $slug, $found, 0));
 	}
 
-	public function get_stop_confusion_theme_check() : array {
+	public function getStopConfusionThemeCheck() : array {
 		global $wpdb;
 
 		$retrieve_rows = "SELECT * FROM " . $wpdb->prefix . "stop_confusion_theme_check";
 		return $wpdb->get_results($retrieve_rows, ARRAY_A);
 	}
 
-	private function get_stop_confusion_last_check(string $slug) : string {
+	private function getStopConfusionLastCheck(string $slug) : string {
 		global $wpdb;
 
 		$retrieve_rows = "SELECT date_check FROM " . $wpdb->prefix . "stop_confusion_theme_check WHERE theme_slug = %s";
 		return $wpdb->get_col($wpdb->prepare($retrieve_rows, $slug))[0];
 	}
 
-	public function check_if_theme_had_svn(string $slug) : int {
+	public function checkIfThemeHadSvn(string $slug) : int {
 		global $wpdb;
 
 		$retrieve_rows = "SELECT in_svn FROM " . $wpdb->prefix . "stop_confusion_theme_check WHERE theme_slug = %s";
 		return $wpdb->get_col($wpdb->prepare($retrieve_rows, $slug))[0];
 	}
 
-	public function is_in_database(string $slug) : int {
+	public function isInDatabase(string $slug) : int {
 		global $wpdb;
 
 		$search_query = "SELECT * FROM " . $wpdb->prefix . "stop_confusion_theme_check WHERE theme_slug = %s";
 		return $wpdb->query($wpdb->prepare($search_query, $slug));
 	}
 
-	public function update_theme_authorization_status(int $authorized, string $slug) : void {
+	public function updateThemeAuthorizationStatus(int $authorized, string $slug) : void {
 		global $wpdb;
 
 		$update_query = "UPDATE " . $wpdb->prefix . "stop_confusion_theme_check SET is_authorized = %d WHERE theme_slug = %s";
@@ -59,7 +59,7 @@ class Database
 		$wpdb->query($wpdb->prepare($update_query, $authorized, $slug));
 	}
 
-	public function get_authorized_themes() : array {
+	public function getAuthorizedThemes() : array {
 		global $wpdb;
 
 		$retrieve_rows = "SELECT * FROM " . $wpdb->prefix . "stop_confusion_theme_check WHERE is_authorized = 1";
@@ -69,28 +69,28 @@ class Database
 	/**
 	 * Security alert functions
 	 */
-	public function create_stop_confusion_security_alert(string $slug) : void {
+	public function createStopConfusionSecurityAlert(string $slug) : void {
 		global $wpdb;
 
 		$insert_query = "INSERT INTO " . $wpdb->prefix . "stop_confusion_security_alerts (theme_slug, date_check) VALUES(%s, %s);";
-		$wpdb->query($wpdb->prepare($insert_query, $slug, $this->get_stop_confusion_last_check($slug)));
+		$wpdb->query($wpdb->prepare($insert_query, $slug, $this->getStopConfusionLastCheck($slug)));
 	}
 
-	public function get_stop_confusion_security_alerts() : array {
+	public function getStopConfusionSecurityAlerts() : array {
 		global $wpdb;
 
 		$retrieve_rows = "SELECT * FROM " . $wpdb->prefix . "stop_confusion_security_alerts ORDER BY date_check DESC";
 		return $wpdb->get_results($retrieve_rows, ARRAY_A);
 	}
 
-	public function security_alert_in_database(string $slug) : int {
+	public function securityAlertInDatabase(string $slug) : int {
 		global $wpdb;
 
 		$search_query = "SELECT * FROM " . $wpdb->prefix . "stop_confusion_security_alerts WHERE theme_slug = %s";
 		return $wpdb->query($wpdb->prepare($search_query, $slug));
 	}
 
-	public function update_stop_confusion_security_alert(string $slug) : void 
+	public function updateStopConfusionSecurityAlert(string $slug) : void 
 	{
 		global $wpdb;
 

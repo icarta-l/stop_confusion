@@ -21,8 +21,7 @@ function stop_confusion_custom_menu_page() {
 add_action('admin_menu', 'stop_confusion_custom_menu_page');
 
 function stop_confusion_enqueue_scripts_and_styles($hook) {
-    wp_enqueue_style('stop_confusion-style', plugins_url( '/admin/style.css', __FILE__ ));
-    if ($hook === "stop_confusion/admin/view.php") {
+    if ($hook === "stop-confusion/admin/view.php") {
         wp_enqueue_style('stop_confusion-style', plugin_dir_url( __FILE__ ) . '/admin/style.css');
         wp_enqueue_script('stop_confusion-view', plugin_dir_url( __FILE__ ) . '/admin/js/view.js', array('wp-api'));
         wp_localize_script( 'wp-api', 'wpApiSettings', array(
@@ -115,13 +114,13 @@ function stop_confusion_register_rest_route() {
 add_action('rest_api_init', 'stop_confusion_register_rest_route');
 
 function stop_confusion_get_all_themes() {
-    $data = (new Database())->get_stop_confusion_theme_check();
+    $data = (new Database())->getStopConfusionThemeCheck();
     return new WP_REST_Response($data, 200);
 }
 
 function stop_confusion_update_theme_scan() {
-    $result = (new CheckThemeSecurity())->handle_themes();
-    $rows = (new Database())->get_stop_confusion_theme_check();
+    $result = (new CheckThemeSecurity())->handleThemes();
+    $rows = (new Database())->getStopConfusionThemeCheck();
     $data = [
         "security_threat" => $result,
         "rows" => $rows
@@ -132,18 +131,18 @@ function stop_confusion_update_theme_scan() {
 function stop_confusion_toggle_authorization_on_theme(WP_REST_Request $request) {
     $data = $request->get_params();
     $database = new Database();
-    $database->update_theme_authorization_status($data['authorized'], $data['theme_slug']);
-    $themes = $database->get_stop_confusion_theme_check();
+    $database->updateThemeAuthorizationStatus($data['authorized'], $data['theme_slug']);
+    $themes = $database->getStopConfusionThemeCheck();
     return new WP_REST_Response($themes, 200);
 }
 
 function stop_confusion_print_security_alerts() {
-    $data = (new Database())->get_stop_confusion_security_alerts();
+    $data = (new Database())->getStopConfusionSecurityAlerts();
     return new WP_REST_Response($data, 200);
 }
 
 function stop_confusion_filter_update_theme($value, $transient) {
-    $authorized_themes = (new Database())->get_authorized_themes();
+    $authorized_themes = (new Database())->getAuthorizedThemes();
     $theme_slugs = [];
     foreach ($authorized_themes as $authorized_theme) {
         $theme_slugs[] = $authorized_theme['theme_slug'];
