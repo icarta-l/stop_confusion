@@ -1,7 +1,15 @@
+.table-wrapper {
+    overflow: auto;
+}
+
 tr.alert {
     background-color: rgba(245, 87, 76,0.8);
 }
 
 tr.low-alert {
     background-color: rgba(245, 87, 76,0.3);
+}
+
+th, td {
+    padding: 15px;
 }
