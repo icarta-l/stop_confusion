@@ -136,6 +136,7 @@ const addEventListenerToAuthorized = () => {
  	})
  	.then((response) => {
  		console.log(response);
+        securityAlerts.innerHTML = '';
  		response.forEach(printSecurityAlert);
  	});
  }

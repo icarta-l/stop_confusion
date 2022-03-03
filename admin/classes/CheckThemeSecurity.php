@@ -23,6 +23,8 @@ class CheckThemeSecurity
 
 		array_walk($themes, [$this, 'handleTheme']);
 
+		$this->handleLastCheck();
+
 		return $this->security_threat;
 	}
 
@@ -38,6 +40,15 @@ class CheckThemeSecurity
 			$this->handleSecurityThreats($response, $slug, $had_svn);
 		} else {
 			$this->database->createStopConfusionThemeCheck($slug, $response);
+		}
+	}
+
+	private function handleLastCheck() : void
+	{
+		if ($this->database->lastCheckExists() === 0) {
+			$this->database->createStopConfusionLastCheck();
+		} else {
+			$this->database->updateStopConfusionLastCheck();
 		}
 	}
 
@@ -65,12 +76,12 @@ class CheckThemeSecurity
 
 	private function handleSecurityThreats(int $response, string $slug, int $had_svn) : void
 	{
-		if ($this->checkForSecurityThreat($slug, $response, $had_svn) === false) {
-			return;
-		}
 		if ($this->database->securityAlertInDatabase($slug) === 1) {
 			$this->database->updateStopConfusionSecurityAlert($slug);
 		} else {
+			if ($this->checkForSecurityThreat($slug, $response, $had_svn) === false) {
+				return;
+			}
 			$this->database->createStopConfusionSecurityAlert($slug);
 		}
 		$this->database->updateThemeAuthorizationStatus(1, $slug);

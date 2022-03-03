@@ -66,12 +66,19 @@ function stop_confusion_create_table() {
     date_check DATETIME NOT NULL,
     PRIMARY KEY(id),
     FOREIGN KEY (theme_slug)
-        REFERENCES ' . $wpdb->prefix . 'stop_confusion_theme_check(theme_slug)
-        ON DELETE CASCADE
+    REFERENCES ' . $wpdb->prefix . 'stop_confusion_theme_check(theme_slug)
+    ON DELETE CASCADE
+    )
+    ENGINE=INNODB';
+    $create_last_check_table = 'CREATE TABLE IF NOT EXISTS ' . $wpdb->prefix . 'stop_confusion_last_check(
+    id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    date_check DATETIME NOT NULL,
+    PRIMARY KEY(id)
     )
     ENGINE=INNODB';
     $create_table = $wpdb->query($create_main_table);
     $create_secondary_table = $wpdb->query($create_alert_table);
+    $create_tertiary_table = $wpdb->query($create_last_check_table);
     $wpdb->print_error();
 }
 register_activation_hook(__FILE__, 'stop_confusion_create_table');
@@ -161,3 +168,17 @@ function stop_confusion_filter_update_theme($value, $transient) {
     return $value;
 }
 add_filter('site_transient_update_themes','stop_confusion_filter_update_theme', 10, 2);
+
+function handle_last_check() {
+    $database = new Database();
+    $last_check = $database->getLastCheck();
+    if ( !empty($last_check) ) {
+        $last_check = new DateTime($last_check[0]['date_check']);
+        $now = new DateTime();
+        $interval = (int) $now->diff($last_check)->format('%d');
+    }
+    if (empty($last_check) || $interval >= 7) {
+        (new CheckThemeSecurity)->handleThemes();
+    }
+}
+add_action('admin_init', 'handle_last_check');

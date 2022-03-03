@@ -109,4 +109,37 @@ class Database
 		$update_query = "UPDATE " . $wpdb->prefix . "stop_confusion_security_alerts SET date_check = NOW() WHERE theme_slug = %s";
 		$wpdb->query($wpdb->prepare($update_query, $slug));
 	}
+
+	/**
+	 * Last check functions
+	 */
+	public function updateStopConfusionLastCheck() : void 
+	{
+		global $wpdb;
+
+		$update_query = "UPDATE " . $wpdb->prefix . "stop_confusion_last_check SET date_check = NOW()";
+		$wpdb->query($update_query);
+	}
+
+	public function createStopConfusionLastCheck() : void {
+		global $wpdb;
+
+		$insert_query = "INSERT INTO " . $wpdb->prefix . "stop_confusion_last_check (date_check) VALUES(NOW());";
+		$wpdb->query($insert_query);
+	}
+
+	public function lastCheckExists() : int {
+		global $wpdb;
+
+		$search_query = "SELECT * FROM " . $wpdb->prefix . "stop_confusion_last_check";
+		return $wpdb->query($search_query);
+	}
+
+	public function getLastCheck() : array {
+		global $wpdb;
+
+		$retrieve_rows = "SELECT * FROM " . $wpdb->prefix . "stop_confusion_last_check";
+		return $wpdb->get_results($retrieve_rows, ARRAY_A);
+	}
+
 }
