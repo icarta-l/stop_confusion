@@ -4,6 +4,8 @@
  * Author: Idan Carta-Lag
  * Text Domain: stop_confusion
  * Update URI: false
+ * Description: This plugin allows you to check your themes' presence in WordPress remote repository from the admin panel, and block unwanted theme updates to prevent security breach.
+ * Version: 0.1
  */
 
 require_once plugin_dir_path(__FILE__) . './admin/classes/DebugHelper.php';
