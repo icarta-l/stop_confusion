@@ -113,6 +113,17 @@ const addEventListenerToAuthorized = () => {
  }
 
 /**
+ * Confirm authorization choice
+ */
+
+ const confirmAuthorizationChoice = (body, event) => {
+       if (body.authorized !== 0 || event.currentTarget.parentNode.parentNode.classList.item(0) !== "alert") {
+              return true;
+       }
+       return confirm("Are you sure you want to authorize updates for this theme? This might provoke a severe security breach!");
+}
+
+/**
  * HTTP Requests
  */
 
@@ -136,9 +147,9 @@ const addEventListenerToAuthorized = () => {
  	})
  	.then((response) => {
  		console.log(response);
-        securityAlerts.innerHTML = '';
- 		response.forEach(printSecurityAlert);
- 	});
+             securityAlerts.innerHTML = '';
+             response.forEach(printSecurityAlert);
+      });
  }
 
  const toggleAuthorizationOnTheme = (event) => {
@@ -148,31 +159,36 @@ const addEventListenerToAuthorized = () => {
  	const options = getFetchOptions("PUT", true);
  	options.body = JSON.stringify(body);
 
- 	fetch(wpApiSettings.root + "stop_confusion/v1/theme/authorization", options)
- 	.then((response) => {
- 		return response.json();
- 	})
- 	.then((response) => {
- 		removeAllRowsFromTable(myView);
- 		printDataToFront(response);
- 	});
- }
+       if (confirmAuthorizationChoice(body, event) !== true) {
+              return;
+       }
 
- const getScannedThemeInfo = () => {
- 	fetch(wpApiSettings.root + "stop_confusion/v1/themes", getFetchOptions())
- 	.then((response) => {
- 		return response.json();
- 	})
- 	.then((response) => {
- 		printDataToFront(response);
- 		getSecurityAlerts();
- 	});
- }
+       fetch(wpApiSettings.root + "stop_confusion/v1/theme/authorization", options)
+       .then((response) => {
+           return response.json();
+    })
+       .then((response) => {
+           removeAllRowsFromTable(myView);
+           printDataToFront(response);
+           getSecurityAlerts();
+    });
+}
+
+const getScannedThemeInfo = () => {
+     fetch(wpApiSettings.root + "stop_confusion/v1/themes", getFetchOptions())
+     .then((response) => {
+           return response.json();
+    })
+     .then((response) => {
+           printDataToFront(response);
+           getSecurityAlerts();
+    });
+}
 
  /**
   * Run Script
   */
 
- getScannedThemeInfo();
+  getScannedThemeInfo();
 
- updateAction.addEventListener("click", updateThemeScan);
+  updateAction.addEventListener("click", updateThemeScan);

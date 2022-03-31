@@ -4,6 +4,7 @@ require_once str_replace("admin", "functions.php", __DIR__);
 ?>
 <div class="wrap">
 	<h1><?= __('Stop Confusion', 'stop_confusion') ?></h1>
+	<p>This plugin allows you to check your themes' presence in WordPress remote repository from the admin panel, and block unwanted theme updates to prevent security breach.</p>
 	<?php
 	?>
 	<div class="table-wrapper">

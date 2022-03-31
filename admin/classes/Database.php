@@ -110,6 +110,14 @@ class Database
 		$wpdb->query($wpdb->prepare($update_query, $slug));
 	}
 
+	public function deleteSecurityAlertFromDatabase(string $slug) : void
+	{
+		global $wpdb;
+
+		$delete_query = "DELETE FROM " . $wpdb->prefix . "stop_confusion_security_alerts WHERE theme_slug = %s";
+		$wpdb->query($wpdb->prepare($delete_query, $slug));
+	}
+
 	/**
 	 * Last check functions
 	 */

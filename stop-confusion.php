@@ -141,6 +141,9 @@ function stop_confusion_toggle_authorization_on_theme(WP_REST_Request $request) 
 
     $database = new Database();
     $database->updateThemeAuthorizationStatus($data->authorized, $data->theme_slug);
+    if ($database->securityAlertInDatabase($data->theme_slug) && $data->authorized === 0) {
+        $database->deleteSecurityAlertFromDatabase($data->theme_slug);
+    }
     $themes = $database->getStopConfusionThemeCheck();
     return new WP_REST_Response($themes, 200);
 }
