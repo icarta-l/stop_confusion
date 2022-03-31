@@ -21,7 +21,7 @@ function stop_confusion_custom_menu_page() {
 add_action('admin_menu', 'stop_confusion_custom_menu_page');
 
 function stop_confusion_enqueue_scripts_and_styles($hook) {
-    if ($hook === "stop-confusion/admin/view.php") {
+    if ($hook === "stop_confusion/admin/view.php") {
         wp_enqueue_style('stop_confusion-style', plugin_dir_url( __FILE__ ) . '/admin/style.css');
         wp_enqueue_script('stop_confusion-view', plugin_dir_url( __FILE__ ) . '/admin/js/view.js', array('wp-api'));
         wp_localize_script( 'wp-api', 'wpApiSettings', array(
