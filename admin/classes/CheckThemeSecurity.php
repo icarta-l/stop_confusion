@@ -1,27 +1,28 @@
 <?php
+namespace StopConfusion;
 
-require_once 'StopConfusionDatabase.php';
+require_once 'Database.php';
 
 /**
  * Check for theme security
  */
-class StopConfusionCheckThemeSecurity
+class CheckThemeSecurity
 {
 	private bool $security_threat = false;
 
 	public function __construct()
 	{
-		$this->database = new StopConfusionDatabase();
+		$this->database = new Database();
 	}
 	
 	public function handleThemes() : bool 
 	{
 		global $wpdb;
 
-		$themes = wp_get_themes();
+		$themes = \wp_get_themes();
 		$this->checkForDeletedThemes($themes);
 
-		array_walk($themes, [$this, 'handleTheme']);
+		\array_walk($themes, [$this, 'handleTheme']);
 
 		$this->handleLastCheck();
 
@@ -66,10 +67,10 @@ class StopConfusionCheckThemeSecurity
 
 	private function checkWordpressRemoteRepository(string $slug) : int 
 	{
-		$url = 'https://api.wordpress.org/themes/info/1.1/?action=theme_information&request[slug]="' . rawurlencode($slug) . '"';
+		$url = 'https://api.wordpress.org/themes/info/1.1/?action=theme_information&request[slug]="' . \rawurlencode($slug) . '"';
 
-		$response = wp_remote_get($url);
-		$code = wp_remote_retrieve_response_code( $response );
+		$response = \wp_remote_get($url);
+		$code = \wp_remote_retrieve_response_code( $response );
 
 		return ($code === 200) ? 1 : 0;
 	}
@@ -91,9 +92,9 @@ class StopConfusionCheckThemeSecurity
 	private function checkForDeletedThemes(array $themes) : void
 	{
 		$themes_in_database = $this->database->getStopConfusionThemeCheck();
-		$slugs = array_keys($themes);
+		$slugs = \array_keys($themes);
 		foreach ($themes_in_database as $theme) {
-			if (in_array($theme['theme_slug'], $slugs)) {
+			if (\in_array($theme['theme_slug'], $slugs)) {
 				continue;
 			}
 			$this->database->deleteThemeFromDatabase($theme['theme_slug']);

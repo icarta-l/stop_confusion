@@ -8,9 +8,9 @@
  * Version: 0.1
  */
 
-require_once plugin_dir_path(__FILE__) . './admin/classes/StopConfusionDebugHelper.php';
-require_once plugin_dir_path(__FILE__) . './admin/classes/StopConfusionCheckThemeSecurity.php';
-require_once plugin_dir_path(__FILE__) . './admin/classes/StopConfusionDatabase.php';
+require_once plugin_dir_path(__FILE__) . './admin/classes/DebugHelper.php';
+require_once plugin_dir_path(__FILE__) . './admin/classes/CheckThemeSecurity.php';
+require_once plugin_dir_path(__FILE__) . './admin/classes/Database.php';
 
 function stop_confusion_custom_menu_page() {
     add_menu_page(
@@ -45,7 +45,7 @@ function stop_confusion_defer_js( $tag, $handle ) {
 
     return $tag;
 }
-add_filter( 'script_loader_tag', 'defer_js', 10, 2);
+add_filter( 'script_loader_tag', 'stop_confusion_defer_js', 10, 2);
 
 function stop_confusion_create_table() {
     global $wpdb;
@@ -124,13 +124,13 @@ function stop_confusion_register_rest_route() {
 add_action('rest_api_init', 'stop_confusion_register_rest_route');
 
 function stop_confusion_get_all_themes() {
-    $data = (new StopConfusionDatabase())->getStopConfusionThemeCheck();
+    $data = (new \StopConfusion\Database())->getStopConfusionThemeCheck();
     return new WP_REST_Response($data, 200);
 }
 
 function stop_confusion_update_theme_scan() {
-    $result = (new StopConfusionCheckThemeSecurity())->handleThemes();
-    $rows = (new StopConfusionDatabase())->getStopConfusionThemeCheck();
+    $result = (new \StopConfusion\CheckThemeSecurity())->handleThemes();
+    $rows = (new \StopConfusion\Database())->getStopConfusionThemeCheck();
     $data = [
         "security_threat" => $result,
         "rows" => $rows
@@ -141,7 +141,7 @@ function stop_confusion_update_theme_scan() {
 function stop_confusion_toggle_authorization_on_theme(WP_REST_Request $request) {
     $data = json_decode($request->get_body());
 
-    $database = new StopConfusionDatabase();
+    $database = new \StopConfusion\Database();
     $database->updateThemeAuthorizationStatus($data->authorized, $data->theme_slug);
     if ($database->securityAlertInDatabase($data->theme_slug) && $data->authorized === 0) {
         $database->deleteSecurityAlertFromDatabase($data->theme_slug);
@@ -151,12 +151,12 @@ function stop_confusion_toggle_authorization_on_theme(WP_REST_Request $request) 
 }
 
 function stop_confusion_print_security_alerts() {
-    $data = (new StopConfusionDatabase())->getStopConfusionSecurityAlerts();
+    $data = (new \StopConfusion\Database())->getStopConfusionSecurityAlerts();
     return new WP_REST_Response($data, 200);
 }
 
 function stop_confusion_filter_update_theme($value, $transient) {
-    $authorized_themes = (new StopConfusionDatabase())->getAuthorizedThemes();
+    $authorized_themes = (new \StopConfusion\Database())->getAuthorizedThemes();
     $theme_slugs = [];
     foreach ($authorized_themes as $authorized_theme) {
         $theme_slugs[] = $authorized_theme['theme_slug'];
@@ -175,7 +175,7 @@ function stop_confusion_filter_update_theme($value, $transient) {
 add_filter('site_transient_update_themes','stop_confusion_filter_update_theme', 10, 2);
 
 function stop_confusion_handle_last_check() {
-    $database = new StopConfusionDatabase();
+    $database = new \StopConfusion\Database();
     $last_check = $database->getLastCheck();
     if ( !empty($last_check) ) {
         $last_check = new DateTime($last_check[0]['date_check']);
@@ -183,7 +183,7 @@ function stop_confusion_handle_last_check() {
         $interval = (int) $now->diff($last_check)->format('%d');
     }
     if (empty($last_check) || $interval >= 7) {
-        (new StopConfusionCheckThemeSecurity)->handleThemes();
+        (new \StopConfusion\CheckThemeSecurity)->handleThemes();
     }
 }
 add_action('admin_init', 'stop_confusion_handle_last_check');

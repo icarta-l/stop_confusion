@@ -1,9 +1,10 @@
 <?php
 
+namespace StopConfusion;
 /**
  * Database
  */
-class StopConfusionDatabase
+class Database
 {
 	/**
 	 * Theme check functions
