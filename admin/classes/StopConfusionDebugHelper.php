@@ -1,5 +1,5 @@
 <?php
-class DebugHelper 
+class StopConfusionDebugHelper 
 {
 	protected $file;
 

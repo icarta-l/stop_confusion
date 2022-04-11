@@ -3,7 +3,7 @@
 /**
  * Database
  */
-class Database
+class StopConfusionDatabase
 {
 	/**
 	 * Theme check functions

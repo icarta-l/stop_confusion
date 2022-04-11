@@ -1,17 +1,17 @@
 <?php
 
-require_once 'Database.php';
+require_once 'StopConfusionDatabase.php';
 
 /**
  * Check for theme security
  */
-class CheckThemeSecurity
+class StopConfusionCheckThemeSecurity
 {
 	private bool $security_threat = false;
 
 	public function __construct()
 	{
-		$this->database = new Database();
+		$this->database = new StopConfusionDatabase();
 	}
 	
 	public function handleThemes() : bool 

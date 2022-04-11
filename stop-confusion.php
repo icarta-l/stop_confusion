@@ -2,20 +2,20 @@
 /**
  * Plugin Name: Stop Confusion
  * Author: Idan Carta-Lag
- * Text Domain: stop_confusion
+ * Text Domain: stop-confusion
  * Update URI: false
  * Description: This plugin allows you to check your themes' presence in WordPress remote repository from the admin panel, and block unwanted theme updates to prevent security breach.
  * Version: 0.1
  */
 
-require_once plugin_dir_path(__FILE__) . './admin/classes/DebugHelper.php';
-require_once plugin_dir_path(__FILE__) . './admin/classes/CheckThemeSecurity.php';
-require_once plugin_dir_path(__FILE__) . './admin/classes/Database.php';
+require_once plugin_dir_path(__FILE__) . './admin/classes/StopConfusionDebugHelper.php';
+require_once plugin_dir_path(__FILE__) . './admin/classes/StopConfusionCheckThemeSecurity.php';
+require_once plugin_dir_path(__FILE__) . './admin/classes/StopConfusionDatabase.php';
 
 function stop_confusion_custom_menu_page() {
     add_menu_page(
-        __('Stop Confusion', 'stop_confusion'),
-        __('Stop Confusion', 'stop_confusion'),
+        __('Stop Confusion', 'stop-confusion'),
+        __('Stop Confusion', 'stop-confusion'),
         'manage_options',
         plugin_dir_path(__FILE__) . 'admin/view.php'
     );
@@ -34,7 +34,7 @@ function stop_confusion_enqueue_scripts_and_styles($hook) {
 }
 add_action('admin_enqueue_scripts', 'stop_confusion_enqueue_scripts_and_styles');
 
-function defer_js( $tag, $handle ) {
+function stop_confusion_defer_js( $tag, $handle ) {
     $defer = [
         'stop_confusion-view'
     ];
@@ -124,13 +124,13 @@ function stop_confusion_register_rest_route() {
 add_action('rest_api_init', 'stop_confusion_register_rest_route');
 
 function stop_confusion_get_all_themes() {
-    $data = (new Database())->getStopConfusionThemeCheck();
+    $data = (new StopConfusionDatabase())->getStopConfusionThemeCheck();
     return new WP_REST_Response($data, 200);
 }
 
 function stop_confusion_update_theme_scan() {
-    $result = (new CheckThemeSecurity())->handleThemes();
-    $rows = (new Database())->getStopConfusionThemeCheck();
+    $result = (new StopConfusionCheckThemeSecurity())->handleThemes();
+    $rows = (new StopConfusionDatabase())->getStopConfusionThemeCheck();
     $data = [
         "security_threat" => $result,
         "rows" => $rows
@@ -141,7 +141,7 @@ function stop_confusion_update_theme_scan() {
 function stop_confusion_toggle_authorization_on_theme(WP_REST_Request $request) {
     $data = json_decode($request->get_body());
 
-    $database = new Database();
+    $database = new StopConfusionDatabase();
     $database->updateThemeAuthorizationStatus($data->authorized, $data->theme_slug);
     if ($database->securityAlertInDatabase($data->theme_slug) && $data->authorized === 0) {
         $database->deleteSecurityAlertFromDatabase($data->theme_slug);
@@ -151,12 +151,12 @@ function stop_confusion_toggle_authorization_on_theme(WP_REST_Request $request) 
 }
 
 function stop_confusion_print_security_alerts() {
-    $data = (new Database())->getStopConfusionSecurityAlerts();
+    $data = (new StopConfusionDatabase())->getStopConfusionSecurityAlerts();
     return new WP_REST_Response($data, 200);
 }
 
 function stop_confusion_filter_update_theme($value, $transient) {
-    $authorized_themes = (new Database())->getAuthorizedThemes();
+    $authorized_themes = (new StopConfusionDatabase())->getAuthorizedThemes();
     $theme_slugs = [];
     foreach ($authorized_themes as $authorized_theme) {
         $theme_slugs[] = $authorized_theme['theme_slug'];
@@ -174,8 +174,8 @@ function stop_confusion_filter_update_theme($value, $transient) {
 }
 add_filter('site_transient_update_themes','stop_confusion_filter_update_theme', 10, 2);
 
-function handle_last_check() {
-    $database = new Database();
+function stop_confusion_handle_last_check() {
+    $database = new StopConfusionDatabase();
     $last_check = $database->getLastCheck();
     if ( !empty($last_check) ) {
         $last_check = new DateTime($last_check[0]['date_check']);
@@ -183,7 +183,7 @@ function handle_last_check() {
         $interval = (int) $now->diff($last_check)->format('%d');
     }
     if (empty($last_check) || $interval >= 7) {
-        (new CheckThemeSecurity)->handleThemes();
+        (new StopConfusionCheckThemeSecurity)->handleThemes();
     }
 }
-add_action('admin_init', 'handle_last_check');
+add_action('admin_init', 'stop_confusion_handle_last_check');
