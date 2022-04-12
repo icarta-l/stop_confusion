@@ -3,7 +3,6 @@
  * Plugin Name: Stop Confusion
  * Author: Idan Carta-Lag
  * Text Domain: stop-confusion
- * Update URI: false
  * Description: This plugin allows you to check your themes' presence in WordPress remote repository from the admin panel, and block unwanted theme updates to prevent security breach.
  * Version: 0.1
  */
